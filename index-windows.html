@@ -1,0 +1,1985 @@
+<html><head><base href=".">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows 10 Simulation</title>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: url('https://images.unsplash.com/photo-1680128371866-da0e32829a03?q=80&w=5128&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') center center/cover no-repeat fixed;
+  overflow: hidden;
+}
+
+.taskbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  background: rgba(19, 23, 33, 0.8);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+  padding: 0 8px;
+}
+
+.start-button {
+  width: 40px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-right: 4px;
+}
+
+.start-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.search-box {
+  width: 300px;
+  height: 32px;
+  margin-left: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 4px;
+  color: white;
+  padding: 0 12px;
+}
+
+.taskbar-icons {
+  display: flex;
+  height: 100%;
+  margin-left: 10px;
+  align-items: center;
+  gap: 4px;
+}
+
+.system-tray {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding-right: 8px;
+  height: 100%;
+}
+
+.system-tray > div {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.system-tray > div:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.task-view-button, .wifi-button, .volume-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clock {
+  color: white;
+  font-size: 12px;
+  padding: 0 8px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.start-menu {
+  display: none;
+  position: fixed;
+  bottom: 40px;
+  left: 0;
+  width: 540px;
+  height: 720px;
+  background: #202020;
+  border-radius: 0;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+  color: white;
+  padding: 0;
+}
+
+.start-menu-left {
+  width: 48px;
+  height: 100%;
+  background: #202020;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  position: relative;
+}
+
+.menu-icon-button {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-bottom: 5px;
+}
+
+.menu-icon-button:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.menu-icon-button svg {
+  width: 16px;
+  height: 16px;
+  fill: white;
+}
+
+.recently-added {
+  margin-bottom: 20px;
+}
+
+.start-menu h3 {
+  font-size: 12px;
+  font-weight: normal;
+  color: #888;
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+
+.app-tile {
+  width: 70px;
+  height: 70px;
+  background: #0078D4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 5px;
+  text-align: center;
+  font-size: 11px;
+}
+
+.app-tile img {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 5px;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.desktop-icon {
+  position: absolute;
+  width: 80px;
+  height: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  cursor: pointer;
+  padding: 5px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.desktop-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.icon-img {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 5px;
+}
+
+.window {
+  position: fixed;
+  background: rgba(19, 23, 33, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 6px;
+  color: white;
+  display: none;
+  min-width: 400px;
+  min-height: 300px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.window-header {
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: move;
+}
+
+.window-title {
+  margin: 0;
+  font-size: 14px;
+}
+
+.window-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.window-control {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  margin-left: 5px;
+}
+
+.window-control:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.window-close::after {
+  content: '×';
+  font-size: 24px;
+  color: white;
+}
+
+.window-minimize::after {
+  content: '−';
+  font-size: 24px;
+  color: white;
+}
+
+.window-maximize::after {
+  content: '□';
+  font-size: 20px;
+  color: white;
+}
+
+.window-content {
+  padding: 20px;
+}
+
+.taskbar-app {
+  height: 100%;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  margin-right: 4px;
+  cursor: pointer;
+  min-width: 40px;
+  justify-content: center;
+  border-radius: 2px;
+  transition: background-color 0.2s;
+}
+
+.taskbar-app:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.taskbar-app.active {
+  background: rgba(255, 255, 255, 0.3);
+  border-bottom: 2px solid #0078D4;
+}
+
+.taskbar-app img {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+}
+
+.taskbar-app span {
+  display: none;
+}
+
+.calculator-content {
+  background: #202020;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.calculator-display {
+  width: 100%;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: #333;
+  color: white;
+  border: none;
+  text-align: right;
+  font-size: 28px;
+  border-radius: 4px;
+}
+
+.calculator-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.calculator-button {
+  padding: 20px;
+  font-size: 20px;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.calculator-button:hover {
+  filter: brightness(1.2);
+}
+
+.number-button {
+  background: #444;
+}
+
+.operator-button {
+  background: #666;
+}
+
+.equals-button {
+  background: #0078D4;
+}
+
+#task-view-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 40px);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  display: none;
+  padding: 20px;
+  z-index: 999;
+  color: white;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+#wifi-panel {
+  position: fixed;
+  bottom: 40px;
+  right: 80px;
+  width: 300px;
+  background: rgba(19, 23, 33, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 8px;
+  padding: 15px;
+  color: white;
+  display: none;
+  z-index: 1000;
+}
+
+#volume-panel {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  width: 300px;
+  background: rgba(19, 23, 33, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 8px;
+  padding: 15px;
+  color: white;
+  display: none;
+  z-index: 1000;
+}
+
+.login-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: url('https://images.unsplash.com/photo-1680128371866-da0e32829a03?q=80&w=5128&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') center center/cover no-repeat fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  color: white;
+}
+
+.login-blur {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.windows-time {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  text-align: left;
+  font-size: 72px;
+  font-weight: 300;
+  transform: none;
+}
+
+.windows-date {
+  position: absolute;
+  top: 110px;
+  left: 20px;
+  font-size: 32px;
+  font-weight: 300;
+  text-align: left;
+}
+
+.login-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.user-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #666;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.login-input {
+  width: 300px;
+  padding: 10px 15px;
+  margin: 10px 0;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  color: white;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.login-button {
+  width: 300px;
+  padding: 10px;
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 4px;
+  color: #000;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.login-button:hover {
+  background: #fff;
+}
+
+.login-error {
+  color: #ff4444;
+  margin-top: 10px;
+  display: none;
+}
+
+/* Add these styles to handle the power options menu */
+.power-menu {
+  position: fixed;
+  bottom: 60px;
+  left: 10px;
+  background: rgba(32, 32, 32, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  padding: 8px 0;
+  display: none;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.power-menu-option {
+  padding: 12px 24px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+.power-menu-option:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.power-menu-option svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+.shake {
+  animation: shake 0.5s;
+}
+
+/* User Profile CSS */
+#user-profile-window {
+  top: 50px;
+  left: 50px;
+  width: 600px;
+}
+
+.user-avatar {
+  width: 100px;
+  height: 100px;
+}
+
+.user-settings {
+  margin-bottom: 20px;
+}
+
+.user-settings label {
+  display: block;
+  margin-bottom: 5px;
+}
+</style>
+</head>
+<body>
+
+<div class="login-screen">
+  <div class="login-blur"></div>
+  <div class="windows-time"></div>
+  <div class="windows-date"></div>
+  <div class="login-content">
+    <div class="user-avatar">
+      <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/Orange%20Daisy.jpg" alt="User Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+    </div>
+    <div style="color: white; font-size: 20px; margin-bottom: 15px;">User</div>
+    <input type="password" class="login-input" id="password" placeholder="Password" value="password123">
+    <button class="login-button" onclick="attemptLogin()">Sign in</button>
+    <button class="login-button" onclick="showPasswordHint()" style="background: transparent; color: white; margin-top: 10px;">Show Password Hint</button>
+    <div class="login-error" id="login-error">Incorrect password</div>
+    <div id="password-hint" style="color: white; margin-top: 10px; display: none;">Hint: password123</div>
+  </div>
+</div>
+
+<div class="desktop-icon" style="top: 20px; left: 20px;" onclick="openWindow('this-pc')">
+  <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/thumb_14339670430This_PC__1_-removebg-preview.png" class="icon-img" alt="This PC">
+  This PC
+</div>
+
+<div class="desktop-icon" style="top: 120px; left: 20px;" onclick="openWindow('recycle-bin')">
+  <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/windows-16290936934x3-removebg-preview.png" class="icon-img" alt="Recycle Bin">
+  Recycle Bin
+</div>
+
+<div class="desktop-icon" style="top: 220px; left: 20px;" onclick="openWindow('edge')">
+  <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/Microsoft_Edge_logo_(2019).svg.png" class="icon-img" alt="Microsoft Edge">
+  Microsoft Edge
+</div>
+
+<div class="desktop-icon" style="top: 320px; left: 20px;" onclick="openWindow('calculator')">
+  <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/Windows-10-Calculator-Fluent-Icon-Big-256.png" class="icon-img" alt="Calculator">
+  Calculator
+</div>
+
+<div class="desktop-icon" style="top: 420px; left: 20px;" onclick="openWindow('pc-health')">
+  <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/OIP__1_-removebg-preview%20(1).png" class="icon-img" alt="PC Health Check">
+  PC Health Check
+</div>
+
+<div class="desktop-icon" style="top: 520px; left: 20px;" onclick="openWindow('3d-viewer')">
+  <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/3d%20viewer%20icon.hehe.png" class="icon-img" alt="3D Viewer">
+  3D Viewer
+</div>
+
+<div class="desktop-icon" style="top: 620px; left: 20px;" onclick="openWindow('camera')">
+  <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/Windows-10-Camera-Icon-Fluent-Colorful-2020-1.png" class="icon-img" alt="Camera">
+  Camera
+</div>
+
+<div class="desktop-icon" style="top: 20px; left: 120px;" onclick="openWindow('calendar')">
+  <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/calendar--v1.png" class="icon-img" alt="Calendar">
+  Calendar
+</div>
+
+<div class="desktop-icon" style="top: 120px; left: 120px;" onclick="openWindow('notepad')">
+  <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/printed-notepad-for-manufacturing-industry-1000x1000.png" class="icon-img" alt="Notepad">
+  Notepad
+</div>
+
+<div class="desktop-icon" style="top: 220px; left: 120px;" onclick="openWindow('file-explorer')">
+  <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/file-explorer-folder-libraries-icon-18298.png" class="icon-img" alt="File Explorer">
+  File Explorer
+</div>
+
+<div id="this-pc-window" class="window" style="top: 50px; left: 50px;">
+  <div class="window-header">
+    <div class="window-title">This PC</div>
+    <div class="window-controls">
+      <div class="window-control window-minimize" onclick="minimizeWindow('this-pc-window')"></div>
+      <div class="window-control window-maximize" onclick="maximizeWindow('this-pc-window')"></div>
+      <div class="window-control window-close" onclick="closeWindow('this-pc')"></div>
+    </div>
+  </div>
+  <div class="window-content">
+    <div style="padding: 10px;">
+      <h3>Quick Access</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+        <div style="padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+          <div>Desktop</div>
+          <small>Last modified: Today</small>
+        </div>
+        <div style="padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+          <div>Downloads</div>
+          <small>Last modified: Yesterday</small>
+        </div>
+        <div style="padding: 10px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+          <div>Documents</div>
+          <small>Last modified: 2 days ago</small>
+        </div>
+      </div>
+      
+      <h3>Devices and drives</h3>
+      <div style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <p>RAM Memory</p>
+        <div style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px;">
+          <div style="background: #0078D4; width: 95%; height: 100%; border-radius: 4px;"></div>
+        </div>
+        <small>68 MB free of 71 MB</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="recycle-bin-window" class="window" style="top: 70px; left: 70px;">
+  <div class="window-header">
+    <div class="window-title">Recycle Bin</div>
+    <div class="window-controls">
+      <div class="window-control window-minimize" onclick="minimizeWindow('recycle-bin-window')"></div>
+      <div class="window-control window-maximize" onclick="maximizeWindow('recycle-bin-window')"></div>
+      <div class="window-control window-close" onclick="closeWindow('recycle-bin')"></div>
+    </div>
+  </div>
+  <div class="window-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h3 style="margin: 0;">Recycle Bin</h3>
+      <div>
+        <button style="padding: 8px 16px; background: #0078D4; border: none; color: white; border-radius: 4px; margin-right: 10px;">Restore all</button>
+        <button style="padding: 8px 16px; background: #0078D4; border: none; color: white; border-radius: 4px;">Empty Recycle Bin</button>
+      </div>
+    </div>
+    <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 4px; margin-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between;">
+        <span>document.txt</span>
+        <span>Deleted: Today, 2:30 PM</span>
+      </div>
+      <small>Original location: C:\Users\User\Documents</small>
+    </div>
+    <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 4px; margin-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between;">
+        <span>presentation.pptx</span>
+        <span>Deleted: Yesterday, 4:15 PM</span>
+      </div>
+      <small>Original location: C:\Users\User\Desktop</small>
+    </div>
+  </div>
+</div>
+
+<div id="edge-window" class="window" style="top: 90px; left: 90px; width: 800px;">
+  <div class="window-header">
+    <div class="window-title">Microsoft Edge</div>
+    <div class="window-controls">
+      <div class="window-control window-minimize" onclick="minimizeWindow('edge-window')"></div>
+      <div class="window-control window-maximize" onclick="maximizeWindow('edge-window')"></div>
+      <div class="window-control window-close" onclick="closeWindow('edge')"></div>
+    </div>
+  </div>
+  <div class="window-content">
+    <div style="background: #f0f0f0; padding: 10px; border-radius: 4px; color: black;">
+      <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+        <div style="display: flex; gap: 5px;">
+          <button id="edge-back" style="padding: 8px 12px; background: #ddd; border: none; border-radius: 4px; cursor: pointer;">
+            <svg width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor;">
+              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+            </svg>
+          </button>
+          <button id="edge-forward" style="padding: 8px 12px; background: #ddd; border: none; border-radius: 4px; cursor: pointer;">
+            <svg width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor;">
+              <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+            </svg>
+          </button>
+          <button id="edge-reload" style="padding: 8px 12px; background: #ddd; border: none; border-radius: 4px; cursor: pointer;">
+            <svg width="16" height="16" viewBox="0 0 24 24" style="fill: currentColor;">
+              <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+            </svg>
+          </button>
+        </div>
+        <input type="text" id="edge-url" value="https://www.microsift.com" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+      </div>
+      <div id="edge-content" style="background: white; padding: 20px; border-radius: 4px; height: 500px; overflow-y: auto;">
+        <!-- Default homepage content will be loaded here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="calculator-window" class="window" style="top: 110px; left: 110px;">
+  <div class="window-header">
+    <div class="window-title">Calculator</div>
+    <div class="window-controls">
+      <div class="window-control window-minimize" onclick="minimizeWindow('calculator-window')"></div>
+      <div class="window-control window-maximize" onclick="maximizeWindow('calculator-window')"></div>
+      <div class="window-control window-close" onclick="closeWindow('calculator')"></div>
+    </div>
+  </div>
+  <div class="calculator-content">
+    <input type="text" id="calc-display" value="0" readonly class="calculator-display">
+    <div class="calculator-grid">
+      <button onclick="calcButton('7')" class="calculator-button number-button">7</button>
+      <button onclick="calcButton('8')" class="calculator-button number-button">8</button>
+      <button onclick="calcButton('9')" class="calculator-button number-button">9</button>
+      <button onclick="calcButton('/')" class="calculator-button operator-button">/</button>
+      <button onclick="calcButton('4')" class="calculator-button number-button">4</button>
+      <button onclick="calcButton('5')" class="calculator-button number-button">5</button>
+      <button onclick="calcButton('6')" class="calculator-button number-button">6</button>
+      <button onclick="calcButton('*')" class="calculator-button operator-button">×</button>
+      <button onclick="calcButton('1')" class="calculator-button number-button">1</button>
+      <button onclick="calcButton('2')" class="calculator-button number-button">2</button>
+      <button onclick="calcButton('3')" class="calculator-button number-button">3</button>
+      <button onclick="calcButton('-')" class="calculator-button operator-button">-</button>
+      <button onclick="calcButton('0')" class="calculator-button number-button">0</button>
+      <button onclick="calcButton('.')" class="calculator-button number-button">.</button>
+      <button onclick="calcButton('=')" class="calculator-button equals-button">=</button>
+      <button onclick="calcButton('+')" class="calculator-button operator-button">+</button>
+    </div>
+  </div>
+</div>
+
+<div id="task-view-overlay">
+  <div style="width: 100%; text-align: center; margin-bottom: 20px;">
+    <h2>Task View</h2>
+    <p>All open windows will appear here</p>
+  </div>
+</div>
+
+<div id="wifi-panel">
+  <h3>WiFi</h3>
+  <div style="margin: 15px 0;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <span>WiFi</span>
+      <label class="switch">
+        <input type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div style="margin-top: 15px;">
+      <div style="padding: 10px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-bottom: 8px;">
+        Home Network
+        <div style="font-size: 12px; color: #0078D4;">Connected</div>
+      </div>
+      <div style="padding: 10px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-bottom: 8px;">
+        Neighbor's WiFi
+        <div style="font-size: 12px;">Secured</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="volume-panel">
+  <h3>Volume</h3>
+  <div style="margin: 15px 0;">
+    <input type="range" min="0" max="100" value="50" style="width: 100%;">
+    <div style="text-align: center; margin-top: 10px;">50%</div>
+  </div>
+</div>
+
+<div class="taskbar">
+  <div class="start-button">
+    <svg width="22" height="22" viewBox="0 0 88 88">
+      <path d="M0,12.402,35.687,8.059,35.719,42.97,0.031,43.002Z" fill="#fff"></path>
+      <path d="M40.047,7.831,87.969,2,87.969,42.463,40.047,42.736Z" fill="#fff"></path>
+      <path d="M0,46.833,35.687,46.802,35.719,81.713,0.031,77.369Z" fill="#fff"></path>
+      <path d="M40.047,46.833,87.969,46.833,87.969,87.263,40.047,81.432Z" fill="#fff"></path>
+    </svg>
+  </div>
+  <input type="text" class="search-box" placeholder="Type here to search">
+  <div class="taskbar-icons"></div>
+  <div class="system-tray">
+    <div class="task-view-button" title="Task View" onclick="toggleTaskView()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+        <path d="M4 4h16v16H4V4m2 2v12h12V6H6z"/>
+        <path d="M6 6h5v5H6zM13 6h5v5h-5zM6 13h5v5H6zM13 13h5v5h-5z"/>
+      </svg>
+    </div>
+    <div class="wifi-button" title="WiFi: Connected" onclick="toggleWiFiPanel()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+        <path d="M12 21l-4-4h8l-4 4zm4-7h-8l4-4 4 4zm4-4h-16l8-8 8 8z"/>
+      </svg>
+    </div>
+    <div class="volume-button" title="Volume: 50%" onclick="toggleVolumePanel()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.8-1-3.3-2.5-4v8c1.5-.7 2.5-2.2 2.5-4z"/>
+      </svg>
+    </div>
+    <div class="clock">12:00 PM</div>
+  </div>
+</div>
+
+<div class="start-menu">
+  <div class="start-menu-left">
+    <div class="menu-icon-button" onclick="showMainMenu()">
+      <svg viewBox="0 0 24 24"><path fill="white" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    </div>
+    <div class="menu-icon-button" onclick="goToHome()">
+      <svg viewBox="0 0 24 24"><path fill="white" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    </div>
+    <div class="menu-icon-button" onclick="showUserProfile()">
+      <svg viewBox="0 0 24 24"><path fill="white" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+    </div>
+    <div class="menu-icon-button shutdown-button" onclick="showPowerOptions()">
+      <svg viewBox="0 0 24 24" fill="white">
+        <path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="start-menu-content">
+    <div class="recently-added">
+      <h3>Recently Added</h3>
+      <div class="app-grid">
+        <div class="app-tile" onclick="openWindow('pc-health')">
+          <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/OIP__1_-removebg-preview%20(1).png" alt="PC Health">
+          <span>PC Health Check</span>
+        </div>
+        <div class="app-tile" onclick="openWindow('3d-viewer')">
+          <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/3d%20viewer%20icon.hehe.png" alt="3D Viewer">
+          <span>3D Viewer</span>
+        </div>
+        <div class="app-tile" onclick="openWindow('calculator')">
+          <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/Windows-10-Calculator-Fluent-Icon-Big-256.png" alt="Calculator">  
+          <span>Calculator</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="all-apps">
+      <h3>All Apps</h3>
+      <div class="app-grid">
+        <div class="app-tile" onclick="openWindow('this-pc')">
+          <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/thumb_14339670430This_PC__1_-removebg-preview.png" alt="This PC">
+          <span>This PC</span>
+        </div>
+        <div class="app-tile" onclick="openWindow('edge')">
+          <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/Microsoft_Edge_logo_(2019).svg.png" alt="Edge">
+          <span>Edge</span>
+        </div>
+        <div class="app-tile" onclick="openWindow('recycle-bin')">
+          <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/windows-16290936934x3-removebg-preview.png" alt="Recycle Bin">
+          <span>Recycle Bin</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="settings-window" class="window" style="top: 130px; left: 130px; width: 800px;">
+  <div class="window-header">
+    <div class="window-title">Settings</div>
+    <div class="window-controls">
+      <div class="window-control window-minimize" onclick="minimizeWindow('settings-window')"></div>
+      <div class="window-control window-maximize" onclick="maximizeWindow('settings-window')"></div>
+      <div class="window-control window-close" onclick="closeWindow('settings')"></div>
+    </div>
+  </div>
+  <div class="window-content">
+    <div style="padding: 20px;">
+      <div style="display: grid; grid-template-columns: 200px 1fr; gap: 20px;">
+        <!-- Settings Navigation -->
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+          <div class="settings-nav-item" data-section="system" style="padding: 10px; cursor: pointer; margin-bottom: 5px;">
+            System
+          </div>
+          <div class="settings-nav-item active" data-section="personalization" style="padding: 10px; cursor: pointer; margin-bottom: 5px; background: rgba(255,255,255,0.1); border-radius: 4px;">
+            Personalization
+          </div>
+          <div class="settings-nav-item" data-section="apps" style="padding: 10px; cursor: pointer; margin-bottom: 5px;">
+            Apps
+          </div>
+          <div class="settings-nav-item" data-section="accounts" style="padding: 10px; cursor: pointer; margin-bottom: 5px;">
+            Accounts
+          </div>
+          <div class="settings-nav-item" data-section="privacy" style="padding: 10px; cursor: pointer;">
+            Privacy & Security
+          </div>
+        </div>
+        
+        <!-- Settings Content -->
+        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px;">
+          <div id="personalization-section">
+            <h2 style="margin-top: 0;">Personalization</h2>
+            
+            <!-- Background Settings -->
+            <div style="margin-bottom: 30px;">
+              <h3>Background</h3>
+              <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 10px;">Choose your background</label>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                  <div class="wallpaper-option" data-wallpaper="url('https://5aowf4e4bbq9ysijaqup.c.websim.ai/a/e27cf023-d9ba-4b51-a5fd-13cb758bf244')" onclick="changeWallpaper('url(\'https://5aowf4e4bbq9ysijaqup.c.websim.ai/a/e27cf023-d9ba-4b51-a5fd-13cb758bf244\')'); updateWallpaperSelection('url(\'https://5aowf4e4bbq9ysijaqup.c.websim.ai/a/e27cf023-d9ba-4b51-a5fd-13cb758bf244\')")" 
+                       style="height: 80px; border-radius: 4px; cursor: pointer; overflow: hidden; position: relative; border: 2px solid transparent; transition: all 0.3s;">
+                    <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/a/e27cf023-d9ba-4b51-a5fd-13cb758bf244" 
+                         style="width: 100%; height: 100%; object-fit: cover;">
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 4px; background: rgba(0, 0, 0, 0.7); color: white; font-size: 12px; text-align: center;">
+                      Default
+                    </div>
+                  </div>
+                  <div class="wallpaper-option" data-wallpaper="url('https://5aowf4e4bbq9ysijaqup.c.websim.ai/img0_3840x2160.jpg')" onclick="changeWallpaper('url(\'https://5aowf4e4bbq9ysijaqup.c.websim.ai/img0_3840x2160.jpg\')'); updateWallpaperSelection('url(\'https://5aowf4e4bbq9ysijaqup.c.websim.ai/img0_3840x2160.jpg\')")" 
+                       style="height: 80px; border-radius: 4px; cursor: pointer; overflow: hidden; position: relative; border: 2px solid transparent; transition: all 0.3s;">
+                    <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/img0_3840x2160.jpg"
+                         style="width: 100%; height: 100%; object-fit: cover;">
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 4px; background: rgba(0, 0, 0, 0.7); color: white; font-size: 12px; text-align: center;">
+                      Windows Blue
+                    </div>
+                  </div>
+                  <div onclick="changeWallpaper('url(\'https://5aowf4e4bbq9ysijaqup.c.websim.ai/d4134c56384a2edd1eecc6403e7edbab.png\')')"
+                       class="wallpaper-option" data-wallpaper="url('https://5aowf4e4bbq9ysijaqup.c.websim.ai/d4134c56384a2edd1eecc6403e7edbab.png')"
+                       style="height:80px;border-radius:4px;cursor:pointer;overflow:hidden;position:relative;border: 2px solid transparent;transition: all 0.3s">
+                    <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/d4134c56384a2edd1eecc6403e7edbab.png"
+                         style="width:100%;height:100%;object-fit:cover">
+                    <div style="position:absolute;bottom:0;left:0;right:0;padding:4px;background:rgba(0,0,0,0.7);color:white;font-size:12px;text-align:center">
+                      Abstract Art
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Color Settings -->
+            <div style="margin-bottom: 30px;">
+              <h3>Colors</h3>
+              <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 10px;">Accent color</label>
+                <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;">
+                  <div onclick="changeAccentColor('#0078D4')" style="width: 40px; height: 40px; background: #0078D4; border-radius: 4px; cursor: pointer;"></div>
+                  <div onclick="changeAccentColor('#107C10')" style="width: 40px; height: 40px; background: #107C10; border-radius: 4px; cursor: pointer;"></div>
+                  <div onclick="changeAccentColor('#E74856')" style="width: 40px; height: 40px; background: #E74856; border-radius: 4px; cursor: pointer;"></div>
+                  <div onclick="changeAccentColor('#744DA9')" style="width: 40px; height: 40px; background: #744DA9; border-radius: 4px; cursor: pointer;"></div>
+                  <div onclick="changeAccentColor('#FF8C00')" style="width: 40px; height: 40px; background: #FF8C00; border-radius: 4px; cursor: pointer;"></div>
+                  <div onclick="changeAccentColor('#018574')" style="width: 40px; height: 40px; background: #018574; border-radius: 4px; cursor: pointer;"></div>
+                </div>
+              </div>
+              
+              <!-- Transparency Effects -->
+              <div style="margin-top: 20px;">
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                  <input type="checkbox" id="transparency-toggle" onchange="toggleTransparency()" style="margin-right: 10px;">
+                  Transparency effects
+                </label>
+              </div>
+            </div>
+            
+            <!-- Taskbar Settings -->
+            <div>
+              <h3>Taskbar</h3>
+              <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 10px;">Taskbar alignment</label>
+                <select onchange="changeTaskbarAlignment(this.value)" style="padding: 8px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;">
+                  <option value="left">Left</option>
+                  <option value="center">Center</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="pc-health-window" class="window" style="top: 50px; left: 150px;">
+  <div class="window-header">
+    <div class="window-title">PC Health Check</div>
+    <div class="window-controls">
+      <div class="window-control window-minimize" onclick="minimizeWindow('pc-health-window')"></div>
+      <div class="window-control window-maximize" onclick="maximizeWindow('pc-health-window')"></div>
+      <div class="window-control window-close" onclick="closeWindow('pc-health')"></div>
+    </div>
+  </div>
+  <div class="window-content">
+    <div style="padding: 20px;">
+      <h2>System Health Report</h2>
+      <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+        <h3>Device Performance</h3>
+        <div style="margin: 10px 0;">
+          <div>CPU Usage</div>
+          <div style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px;">
+            <div style="background: #0078D4; width: 45%; height: 100%; border-radius: 4px;"></div>
+          </div>
+        </div>
+        <div style="margin: 10px 0;">
+          <div>Memory Usage</div>
+          <div style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px;">
+            <div style="background: #0078D4; width: 65%; height: 100%; border-radius: 4px;"></div>
+          </div>
+        </div>
+      </div>
+      <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+        <h3>Windows Security</h3>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+          <div style="padding: 10px; background: rgba(0,120,212,0.1); border-radius: 4px;">
+            <h4>Virus Protection</h4>
+            <p>✅ Up to date</p>
+          </div>
+          <div style="padding: 10px; background: rgba(0,120,212,0.1); border-radius: 4px;">
+            <h4>Firewall</h4>
+            <p>✅ Active</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="3d-viewer-window" class="window" style="top: 70px; left: 170px;">
+  <div class="window-header">
+    <div class="window-title">3D Viewer</div>
+    <div class="window-controls">
+      <div class="window-control window-minimize" onclick="minimizeWindow('3d-viewer-window')"></div>
+      <div class="window-control window-maximize" onclick="maximizeWindow('3d-viewer-window')"></div>
+      <div class="window-control window-close" onclick="closeWindow('3d-viewer')"></div>
+    </div>
+  </div>
+  <div class="window-content">
+    <div style="padding: 20px;">
+      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button style="background: #0078D4; color: white; border: none; padding: 8px 16px; border-radius: 4px;">Open File</button>
+        <button style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 16px; border-radius: 4px;">Import</button>
+        <button style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 16px; border-radius: 4px;">Export</button>
+      </div>
+      <div style="background: rgba(255,255,255,0.05); padding: 40px; border-radius: 8px; text-align: center;">
+        <svg viewBox="0 0 24 24" style="width: 100px; height: 100px; fill: #0078D4;">
+          <path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.33l6 3-6 3-6-3 6-3zM4 16.5v-7l8 4v7l-8-4zm2-5.67V8.17l6 3v2.66l-6-3zM20 16.5l-8 4v-7l8-4v7z"/>
+        </svg>
+        <p>Drag and drop a 3D model file to view</p>
+        <div style="margin-top: 20px;">
+          <p>Supported formats:</p>
+          <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
+            <span style="background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 4px;">.obj</span>
+            <span style="background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 4px;">.fbx</span>
+            <span style="background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 4px;">.3ds</span>
+            <span style="background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 4px;">.stl</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="camera-window" class="window" style="top: 90px; left: 190px;">
+  <div class="window-header">
+    <div class="window-title">Camera</div>
+    <div class="window-controls">
+      <div class="window-control window-minimize" onclick="minimizeWindow('camera-window')"></div>
+      <div class="window-control window-maximize" onclick="maximizeWindow('camera-window')"></div>
+      <div class="window-control window-close" onclick="closeWindow('camera')"></div>
+    </div>
+  </div>
+  <div class="window-content">
+    <div style="padding: 20px; text-align: center;">
+      <div style="background: #000; padding: 40px; border-radius: 8px; position: relative;">
+        <svg viewBox="0 0 24 24" style="width: 100px; height: 100px; fill: #666;">
+          <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+        </svg>
+        <p style="color: #666;">Camera access required</p>
+        <button style="background: #0078D4; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin-top: 10px;">Enable Camera</button>
+        <div style="position: absolute; bottom: 10px; right: 10px;">
+          <button style="background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">
+            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: white;">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+            </svg>
+          </button>
+          <button style="background: #d40000; border: none; color: white; width: 40px; height: 40px; border-radius: 50%;">
+            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: white;">
+              <circle cx="12" cy="12" r="8"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+        <div style="background: #333; aspect-ratio: 1; border-radius: 4px;"></div>
+        <div style="background: #333; aspect-ratio: 1; border-radius: 4px;"></div>
+        <div style="background: #333; aspect-ratio: 1; border-radius: 4px;"></div>
+        <div style="background: #333; aspect-ratio: 1; border-radius: 4px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="calendar-window" class="window" style="top: 110px; left: 210px;">
+  <div class="window-header">
+    <div class="window-title">Calendar</div>
+    <div class="window-controls">
+      <div class="window-control window-minimize" onclick="minimizeWindow('calendar-window')"></div>
+      <div class="window-control window-maximize" onclick="maximizeWindow('calendar-window')"></div>
+      <div class="window-control window-close" onclick="closeWindow('calendar')"></div>
+    </div>
+  </div>
+  <div class="window-content">
+    <div style="padding: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Calendar</h2>
+        <button style="background: #0078D4; color: white; border: none; padding: 8px 16px; border-radius: 4px;">+ New Event</button>
+      </div>
+      <div id="calendar-content"></div>
+      <div style="margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+        <h3>Upcoming Events</h3>
+        <div style="margin-top: 10px;">
+          <div style="padding: 10px; background: rgba(0,120,212,0.1); border-radius: 4px; margin-bottom: 8px;">
+            <div style="font-weight: bold">Team Meeting</div>
+            <small>Today, 2:00 PM</small>
+          </div>
+          <div style="padding: 10px; background: rgba(0,120,212,0.1); border-radius: 4px;">
+            <div style="font-weight: bold">Project Deadline</div>
+            <small>Tomorrow, 5:00 PM</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="notepad-window" class="window" style="top: 130px; left: 230px;">
+  <div class="window-header">
+    <div class="window-title">Notepad</div>
+    <div class="window-controls">
+      <div class="window-control window-minimize" onclick="minimizeWindow('notepad-window')"></div>
+      <div class="window-control window-maximize" onclick="maximizeWindow('notepad-window')"></div>
+      <div class="window-control window-close" onclick="closeWindow('notepad')"></div>
+    </div>
+  </div>
+  <div class="window-content">
+    <div style="padding: 20px;">
+      <div style="margin-bottom: 10px;">
+        <button style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 5px 10px; margin-right: 5px;">File</button>
+        <button style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 5px 10px; margin-right: 5px;">Edit</button>
+        <button style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 5px 10px; margin-right: 5px;">Format</button>
+      </div>
+      <textarea style="width: 100%; height: 300px; background: rgba(255,255,255,0.05); border: none; color: white; padding: 10px; resize: none;" placeholder="Type your notes here..."></textarea>
+      <div style="margin-top: 10px; font-size: 12px; color: #888;">
+        Line 1, Column 1 | UTF-8 | Windows (CRLF)
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="file-explorer-window" class="window" style="top: 150px; left: 250px;">
+  <div class="window-header">
+    <div class="window-title">File Explorer</div>
+    <div class="window-controls">
+      <div class="window-control window-minimize" onclick="minimizeWindow('file-explorer-window')"></div>
+      <div class="window-control window-maximize" onclick="maximizeWindow('file-explorer-window')"></div>
+      <div class="window-control window-close" onclick="closeWindow('file-explorer')"></div>
+    </div>
+  </div>
+  <div class="window-content">
+    <div style="padding: 20px;">
+      <div style="display: flex; gap: 20px;">
+        <div style="width: 200px;">
+          <h3>Quick Access</h3>
+          <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 4px; margin-bottom: 10px;">Desktop</div>
+          <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 4px; margin-bottom: 10px;">Documents</div>
+          <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 4px; margin-bottom: 10px;">Downloads</div>
+          <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 4px;">Pictures</div>
+        </div>
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+            <button style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 16px; border-radius: 4px;">New Folder</button>
+            <button style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 16px; border-radius: 4px;">Copy</button>
+            <button style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 16px; border-radius: 4px;">Paste</button>
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <th style="text-align: left; padding: 8px;">Name</th>
+                <th style="text-align: left; padding: 8px;">Date Modified</th>
+                <th style="text-align: left; padding: 8px;">Type</th>
+                <th style="text-align: left; padding: 8px;">Size</th>
+              </tr>
+              <tr>
+                <td style="padding: 8px;">Documents</td>
+                <td style="padding: 8px;">Today, 2:30 PM</td>
+                <td style="padding: 8px;">File folder</td>
+                <td style="padding: 8px;">--</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px;">Pictures</td>
+                <td style="padding: 8px;">Yesterday</td>
+                <td style="padding: 8px;">File folder</td>
+                <td style="padding: 8px;">--</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="user-profile-window" class="window" style="top:50px;left:50px;width:600px">
+  <div class="window-header">
+    <div class="window-title">User Profile</div>
+    <div class="window-controls">
+      <div class="window-control window-minimize" onclick="minimizeWindow('user-profile-window')"></div>
+      <div class="window-control window-maximize" onclick="maximizeWindow('user-profile-window')"></div>
+      <div class="window-control window-close" onclick="closeWindow('user-profile')"></div>
+    </div>
+  </div>
+  <div class="window-content">
+    <div style="padding:20px">
+      <div style="display:flex;gap:20px;margin-bottom:20px">
+        <div>
+          <div class="user-avatar" style="width:100px;height:100px">
+            <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/Orange%20Daisy.jpg" alt="User Avatar" id="profile-avatar">
+          </div>
+          <button onclick="changeAvatar()" style="margin-top:10px;width:100%;padding:8px;background:#0078D4;border:none;color:white;border-radius:4px">
+            Change Avatar
+          </button>
+        </div>
+        <div style="flex:1">
+          <h3>User Settings</h3>
+          <div style="margin-bottom:15px">
+            <label style="display:block;margin-bottom:5px">Display Name</label>
+            <input type="text" value="User" id="display-name" 
+              style="width:100%;padding:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:4px">
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:5px">Theme</label>
+            <select id="theme-selector" onchange="changeTheme(this.value)"
+              style="width:100%;padding:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:4px">
+              <option value="default">Default</option>
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:8px;margin-top:20px">
+        <h3>Personalization</h3>
+        
+        <!-- Wallpaper Selection -->
+        <div style="margin-bottom:20px">
+          <h4 style="margin-bottom:10px">Wallpaper</h4>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <!-- Default Wallpaper -->
+            <div onclick="changeWallpaper('url(\'https://5aowf4e4bbq9ysijaqup.c.websim.ai/a/e27cf023-d9ba-4b51-a5fd-13cb758bf244\')')" 
+                 style="height:80px;border-radius:4px;cursor:pointer;overflow:hidden;position:relative;border: 2px solid transparent;transition: all 0.3s">
+              <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/a/e27cf023-d9ba-4b51-a5fd-13cb758bf244" 
+                   style="width:100%;height:100%;object-fit:cover">
+              <div style="position:absolute;bottom:0;left:0;right:0;padding:4px;background:rgba(0,0,0,0.7);color:white;font-size:12px;text-align:center">
+                Default
+              </div>
+            </div>
+            
+            <!-- Windows Blue Wallpaper -->
+            <div onclick="changeWallpaper('url(\'https://5aowf4e4bbq9ysijaqup.c.websim.ai/img0_3840x2160.jpg\')')"
+                 style="height:80px;border-radius:4px;cursor:pointer;overflow:hidden;position:relative;border: 2px solid transparent;transition: all 0.3s">
+              <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/img0_3840x2160.jpg"
+                   style="width:100%;height:100%;object-fit:cover">
+              <div style="position:absolute;bottom:0;left:0;right:0;padding:4px;background:rgba(0,0,0,0.7);color:white;font-size:12px;text-align:center">
+                Windows Blue
+              </div>
+            </div>
+            
+            <div onclick="changeWallpaper('url(\'https://5aowf4e4bbq9ysijaqup.c.websim.ai/d4134c56384a2edd1eecc6403e7edbab.png\')')"
+                 class="wallpaper-option" data-wallpaper="url('https://5aowf4e4bbq9ysijaqup.c.websim.ai/d4134c56384a2edd1eecc6403e7edbab.png')"
+                 style="height:80px;border-radius:4px;cursor:pointer;overflow:hidden;position:relative;border: 2px solid transparent;transition: all 0.3s">
+              <img src="https://5aowf4e4bbq9ysijaqup.c.websim.ai/d4134c56384a2edd1eecc6403e7edbab.png"
+                   style="width:100%;height:100%;object-fit:cover">
+              <div style="position:absolute;bottom:0;left:0;right:0;padding:4px;background:rgba(0,0,0,0.7);color:white;font-size:12px;text-align:center">
+                Abstract Art
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Accent Colors (existing section) -->
+        <div style="margin-top:20px">
+          <h4 style="margin-bottom:10px">Accent Colors</h4>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px">
+            <div onclick="changeAccentColor('#0078D4')" style="width:100%;height:40px;background:#0078D4;border-radius:4px;cursor:pointer"></div>
+            <div onclick="changeAccentColor('#107C10')" style="width:100%;height:40px;background:#107C10;border-radius:4px;cursor:pointer"></div>
+            <div onclick="changeAccentColor('#E74856')" style="width:100%;height:40px;background:#E74856;border-radius:4px;cursor:pointer"></div>
+          </div>
+        </div>
+        
+        <!-- Transparency Toggle (existing section) -->
+        <div style="margin-top:20px">
+          <label style="display:flex;align-items:center">
+            <input type="checkbox" id="transparency-toggle" onchange="toggleTransparency()" style="margin-right:10px">
+            Enable transparency effects
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let activeWindows = new Set();
+let zIndex = 1000;
+
+let calcDisplay = '0';
+let firstOperand = null;
+let operator = null;
+let waitingForSecondOperand = false;
+
+function changeWallpaper(wallpaperUrl) {
+  // Remove 'background:' if it exists in the wallpaperUrl
+  const backgroundImage = wallpaperUrl.replace('background:', '');
+  
+  // Change body background
+  document.body.style.backgroundImage = backgroundImage;
+  document.body.style.backgroundPosition = 'center center';
+  document.body.style.backgroundSize = 'cover';
+  document.body.style.backgroundRepeat = 'no-repeat';
+  document.body.style.backgroundAttachment = 'fixed';
+
+  // Also change login screen background
+  const loginScreen = document.querySelector('.login-screen');
+  if (loginScreen) {
+    loginScreen.style.backgroundImage = backgroundImage;
+    loginScreen.style.backgroundPosition = 'center center';
+    loginScreen.style.backgroundSize = 'cover';
+    loginScreen.style.backgroundRepeat = 'no-repeat';
+    loginScreen.style.backgroundAttachment = 'fixed';
+  }
+}
+
+function updateWallpaperSelection(selectedUrl) {
+  // Remove highlight from all options
+  document.querySelectorAll('.wallpaper-option').forEach(option => {
+    option.style.border = '2px solid transparent';
+  });
+  
+  // Add highlight to selected option
+  const selectedOption = document.querySelector(`.wallpaper-option[data-wallpaper="${selectedUrl}"]`);
+  if (selectedOption) {
+    selectedOption.style.border = '2px solid #0078D4';
+  }
+}
+
+function calcButton(value) {
+  switch(value) {
+    case '=':
+      calculate();
+      break;
+    case '+':
+    case '-':
+    case '*':
+    case '/':
+      handleOperator(value);
+      break;
+    case '.':
+      inputDecimal();
+      break;
+    default:
+      inputDigit(value);
+  }
+  updateDisplay();
+}
+
+function inputDigit(digit) {
+  if (waitingForSecondOperand) {
+    calcDisplay = digit;
+    waitingForSecondOperand = false;
+  } else {
+  }
+}
+
+function inputDecimal() {
+  if (waitingForSecondOperand) {
+    calcDisplay = '0.';
+    waitingForSecondOperand = false;
+    return;
+  }
+  if (calcDisplay.indexOf('.') === -1) {
+    calcDisplay += '.';
+  }
+}
+
+function handleOperator(nextOperator) {
+  const inputValue = parseFloat(calcDisplay);
+
+  if (firstOperand === null) {
+    firstOperand = inputValue;
+  } else if (operator) {
+    const result = calculate();
+    calcDisplay = String(result);
+    firstOperand = result;
+  }
+
+  waitingForSecondOperand = true;
+  operator = nextOperator;
+}
+
+function calculate() {
+  if (operator === null || waitingForSecondOperand) {
+    return parseFloat(calcDisplay);
+  }
+
+  const secondOperand = parseFloat(calcDisplay);
+  let result = 0;
+
+  switch (operator) {
+    case '+':
+      result = firstOperand + secondOperand;
+      break;
+    case '-':
+      result = firstOperand - secondOperand;
+      break;
+    case '*':
+      result = firstOperand * secondOperand;
+      break;
+    case '/':
+      result = firstOperand / secondOperand;
+      break;
+  }
+
+  // Reset the calculator state
+  operator = null;
+  firstOperand = null;
+  waitingForSecondOperand = false;
+
+  return result;
+}
+
+function updateDisplay() {
+  const display = document.getElementById('calc-display');
+  if (display) {
+    display.value = calcDisplay;
+  }
+}
+
+function openWindow(windowName) {
+  const windowElement = document.getElementById(`${windowName}-window`);
+  if (windowElement) {
+    windowElement.style.display = 'block';
+    windowElement.style.zIndex = ++zIndex;
+    
+    // Add to taskbar if not already there
+    addToTaskbar(windowName);
+    
+    // Add to active windows
+    activeWindows.add(windowName);
+    
+    // Make window draggable
+    makeDraggable(windowElement);
+  }
+}
+
+function closeWindow(windowName) {
+  const windowElement = document.getElementById(`${windowName}-window`);
+  if (windowElement) {
+    windowElement.style.display = 'none';
+    
+    // Remove from taskbar
+    removeFromTaskbar(windowName);
+    
+    // Remove from active windows
+    activeWindows.delete(windowName);
+  }
+}
+
+function minimizeWindow(windowId) {
+  const windowElement = document.getElementById(windowId);
+  if (windowElement) {
+    windowElement.style.display = 'none';
+  }
+}
+
+function maximizeWindow(windowId) {
+  const windowElement = document.getElementById(windowId);
+  if (windowElement) {
+    if (windowElement.style.width === '100%') {
+      // Restore
+      windowElement.style.width = '';
+      windowElement.style.height = '';
+      windowElement.style.top = '50px';
+      windowElement.style.left = '50px';
+    } else {
+      // Maximize
+      windowElement.style.width = '100%';
+      windowElement.style.height = 'calc(100vh - 40px)';
+      windowElement.style.top = '0';
+      windowElement.style.left = '0';
+    }
+  }
+}
+
+function addToTaskbar(windowName) {
+  const taskbarIcons = document.querySelector('.taskbar-icons');
+  
+  // Check if icon already exists
+  if (!document.querySelector(`.taskbar-app[data-window="${windowName}"]`)) {
+    const icon = document.createElement('div');
+    icon.className = 'taskbar-app';
+    icon.setAttribute('data-window', windowName);
+    
+    // Get the corresponding desktop icon image
+    const desktopIcon = document.querySelector(`.desktop-icon[onclick*="${windowName}"] img`);
+    const iconSrc = desktopIcon ? desktopIcon.src : '';
+    
+    icon.innerHTML = `
+      <img src="${iconSrc}" alt="${windowName}">
+      <span>${windowName.replace('-', ' ').toUpperCase()}</span>
+    `;
+    
+    icon.onclick = () => toggleWindow(windowName);
+    
+    taskbarIcons.appendChild(icon);
+  }
+}
+
+function removeFromTaskbar(windowName) {
+  const taskbarIcon = document.querySelector(`.taskbar-app[data-window="${windowName}"]`);
+  if (taskbarIcon) {
+    taskbarIcon.remove();
+  }
+}
+
+function toggleWindow(windowName) {
+  const windowElement = document.getElementById(`${windowName}-window`);
+  if (windowElement) {
+    if (windowElement.style.display === 'none') {
+      windowElement.style.display = 'block';
+      windowElement.style.zIndex = ++zIndex;
+    } else {
+      windowElement.style.display = 'none';
+    }
+  }
+}
+
+function makeDraggable(element) {
+  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  const header = element.querySelector('.window-header');
+  
+  if (header) {
+    header.onmousedown = dragMouseDown;
+  }
+
+  function dragMouseDown(e) {
+    e.preventDefault();
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    
+    element.style.zIndex = ++zIndex;
+    
+    document.onmouseup = closeDragElement;
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e.preventDefault();
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    
+    element.style.top = (element.offsetTop - pos2) + "px";
+    element.style.left = (element.offsetLeft - pos1) + "px";
+  }
+
+  function closeDragElement() {
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+}
+
+function toggleTaskView() {
+  const taskViewOverlay = document.getElementById('task-view-overlay');
+  
+  if (taskViewOverlay) {
+    if (taskViewOverlay.style.display === 'none' || !taskViewOverlay.style.display) {
+      // Show task view and populate with active windows
+      taskViewOverlay.style.display = 'flex';
+      taskViewOverlay.innerHTML = '';
+      
+      activeWindows.forEach(windowName => {
+        const windowElement = document.getElementById(`${windowName}-window`);
+        if (windowElement) {
+          const taskViewItem = document.createElement('div');
+          taskViewItem.style.cssText = `
+            width: 300px; 
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px;
+            cursor: pointer;
+          `;
+          
+          const title = windowElement.querySelector('.window-title').textContent;
+          taskViewItem.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 10px;">${title}</div>
+            <div style="font-size: 12px; color: #888;">Running</div>
+          `;
+          
+          taskViewItem.onclick = () => {
+            openWindow(windowName);
+            taskViewOverlay.style.display = 'none';
+          };
+          
+          taskViewOverlay.appendChild(taskViewItem);
+        }
+      });
+      
+      if (activeWindows.size === 0) {
+        taskViewOverlay.innerHTML = `
+          <div style="text-align: center; width: 100%;">
+            <h2>No Active Windows</h2>
+            <p>Open some windows to see them here</p>
+          </div>
+        `;
+      }
+    } else {
+      // Hide task view
+      taskViewOverlay.style.display = 'none';
+    }
+  }
+}
+
+// Add this event listener to close task view when clicking outside
+document.addEventListener('click', (e) => {
+  const taskViewOverlay = document.getElementById('task-view-overlay');
+  const taskViewButton = document.querySelector('.task-view-button');
+  
+  if (taskViewOverlay && !taskViewOverlay.contains(e.target) && !taskViewButton.contains(e.target)) {
+    taskViewOverlay.style.display = 'none';
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const windows = document.querySelectorAll('.window');
+  windows.forEach(window => makeDraggable(window));
+});
+
+function attemptLogin() {
+  const password = document.getElementById('password').value;
+  const loginError = document.getElementById('login-error');
+  const loginScreen = document.querySelector('.login-screen');
+
+  if (password === 'password123') {
+    loginScreen.style.display = 'none';
+    loginError.style.display = 'none';
+  } else {
+    loginError.style.display = 'block';
+    loginScreen.classList.add('shake');
+    setTimeout(() => {
+      loginScreen.classList.remove('shake');
+    }, 500);
+  }
+}
+
+function showPasswordHint() {
+  const hint = document.getElementById('password-hint');
+  hint.style.display = hint.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleStartMenu() {
+  const startMenu = document.querySelector('.start-menu');
+  startMenu.style.display = startMenu.style.display === 'none' ? 'block' : 'none';
+}
+
+function showMainMenu() {
+  const startMenuContent = document.querySelector('.start-menu-content');
+  startMenuContent.style.display = 'block';
+}
+
+function goToHome() {
+  const startMenu = document.querySelector('.start-menu');
+  startMenu.style.display = 'none';
+}
+
+function showUserProfile() {
+  openWindow('user-profile');
+}
+
+function showPowerOptions() {
+  const powerMenu = document.querySelector('.power-menu');
+  if (!powerMenu) {
+    const menu = document.createElement('div');
+    menu.className = 'power-menu';
+    menu.innerHTML = `
+      <div class="power-menu-option" onclick="handlePowerOption('sleep')">
+        <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+        Sleep
+      </div>
+      <div class="power-menu-option" onclick="handlePowerOption('shutdown')">
+        <svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>
+        Shut down
+      </div>
+      <div class="power-menu-option" onclick="handlePowerOption('restart')">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        Restart
+      </div>
+    `;
+    document.body.appendChild(menu);
+  }
+  powerMenu.style.display = powerMenu.style.display === 'none' ? 'block' : 'none';
+}
+
+function handlePowerOption(option) {
+  const loginScreen = document.querySelector('.login-screen');
+  
+  switch(option) {
+    case 'sleep':
+      const dimOverlay = document.createElement('div');
+      dimOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:black;z-index:10000;transition:opacity 1s';
+      document.body.appendChild(dimOverlay);
+      
+      setTimeout(() => {
+        dimOverlay.style.opacity = '0';
+        setTimeout(() => dimOverlay.remove(), 1000);
+      }, 2000);
+      break;
+      
+    case 'shutdown':
+      const shutdownOverlay = document.createElement('div');
+      shutdownOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:black;z-index:10000;opacity:0;transition:opacity 1s';
+      document.body.appendChild(shutdownOverlay);
+      
+      setTimeout(() => {
+        shutdownOverlay.style.opacity = '1';
+        setTimeout(() => {
+          document.querySelectorAll('.window').forEach(w => w.style.display = 'none');
+          document.querySelector('.taskbar-icons').innerHTML = '';
+          activeWindows.clear();
+          
+          loginScreen.style.display = 'flex';
+          document.getElementById('password').value = '';
+          shutdownOverlay.remove();
+        }, 1000);
+      }, 0);
+      break;
+      
+    case 'restart':
+      const restartOverlay = document.createElement('div');
+      restartOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:black;z-index:10000;opacity:0;transition:opacity 1s';
+      document.body.appendChild(restartOverlay);
+      
+      setTimeout(() => {
+        restartOverlay.style.opacity = '1';
+        setTimeout(() => {
+          restartOverlay.innerHTML = `
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:white">
+              <svg class="spin" viewBox="0 0 24 24" style="width:40px;height:40px">
+                <path fill="white" d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
+              </svg>
+              <style>.spin{animation:spin 1s linear infinite}@keyframes spin{100%{transform:rotate(360deg)}}</style>
+            </div>
+          `;
+          
+          setTimeout(() => {
+            document.querySelectorAll('.window').forEach(w => w.style.display = 'none');
+            document.querySelector('.taskbar-icons').innerHTML = '';
+            activeWindows.clear();
+            loginScreen.style.display = 'flex';
+            document.getElementById('password').value = '';
+            restartOverlay.remove();
+          }, 3000);
+        }, 1000);
+      }, 0);
+      break;
+  }
+  document.querySelector('.power-menu').style.display = 'none';
+}
+
+function changeAvatar() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('profile-avatar').src = e.target.result;
+        document.querySelector('.login-screen .user-avatar img').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  input.click();
+}
+
+function changeTheme(theme) {
+  const root = document.documentElement;
+  switch(theme) {
+    case 'dark':
+      root.style.setProperty('--bg-color', '#202020');
+      root.style.setProperty('--text-color', 'white');
+      break;
+    case 'light':
+      root.style.setProperty('--bg-color', '#f0f0f0');
+      root.style.setProperty('--text-color', 'black');
+      break;
+    case 'custom':
+      const colorPicker = document.createElement('input');
+      colorPicker.type = 'color';
+      colorPicker.onchange = (e) => {
+        root.style.setProperty('--bg-color', e.target.value);
+      };
+      colorPicker.click();
+      break;
+    default:
+      root.style.removeProperty('--bg-color');
+      root.style.removeProperty('--text-color');
+  }
+}
+
+function toggleTransparency() {
+  const isEnabled = document.getElementById('transparency-toggle').checked;
+  document.querySelectorAll('.window, .taskbar, .start-menu').forEach(el => {
+    el.style.backdropFilter = isEnabled ? 'blur(10px)' : 'none';
+    el.style.backgroundColor = isEnabled ? 'rgba(19, 23, 33, 0.8)' : 'rgb(19, 23, 33)';
+  });
+}
+
+function changeAccentColor(color) {
+  document.documentElement.style.setProperty('--accent-color', color);
+  document.querySelectorAll('.app-tile, .equals-button').forEach(el => {
+    el.style.backgroundColor = color;
+  });
+}
+
+function toggleWiFiPanel() {
+  const wifiPanel = document.getElementById('wifi-panel');
+  const volumePanel = document.getElementById('volume-panel');
+  
+  if (wifiPanel) {
+    wifiPanel.style.display = wifiPanel.style.display === 'none' ? 'block' : 'none';
+    // Hide volume panel when wifi panel is shown
+    volumePanel.style.display = 'none';
+  }
+}
+
+function toggleVolumePanel() {
+  const volumePanel = document.getElementById('volume-panel');
+  const wifiPanel = document.getElementById('wifi-panel');
+  
+  if (volumePanel) {
+    volumePanel.style.display = volumePanel.style.display === 'none' ? 'block' : 'none';
+    // Hide wifi panel when volume panel is shown
+    wifiPanel.style.display = 'none';
+  }
+}
+
+// Add this event listener to ensure panels hide when clicking outside
+document.addEventListener('click', (e) => {
+  const wifiPanel = document.getElementById('wifi-panel');
+  const volumePanel = document.getElementById('volume-panel');
+  
+  if (wifiPanel && !wifiPanel.contains(e.target) && !e.target.closest('.wifi-button')) {
+    wifiPanel.style.display = 'none';
+  }
+  
+  if (volumePanel && !volumePanel.contains(e.target) && !e.target.closest('.volume-button')) {
+    volumePanel.style.display = 'none';
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelector('.start-button').onclick = toggleStartMenu;
+  document.querySelector('.task-view-button').onclick = toggleTaskView;
+  document.querySelector('.wifi-button').onclick = toggleWiFiPanel;
+  document.querySelector('.volume-button').onclick = toggleVolumePanel;
+
+  updateClock();
+  setInterval(updateClock, 1000);
+});
+
+function updateClock() {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  document.querySelector('.clock').textContent = timeStr;
+}
+
+// Close panels when clicking outside
+document.addEventListener('click', (e) => {
+  const startMenu = document.querySelector('.start-menu');
+  const startButton = document.querySelector('.start-button');
+  const powerMenu = document.querySelector('.power-menu');
+  const wifiPanel = document.getElementById('wifi-panel');
+  const volumePanel = document.getElementById('volume-panel');
+  
+  if (!startMenu.contains(e.target) && !startButton.contains(e.target)) {
+    startMenu.style.display = 'none';
+  }
+  
+  if (powerMenu && !powerMenu.contains(e.target) && !e.target.closest('.shutdown-button')) {
+    powerMenu.style.display = 'none';
+  }
+  
+  if (!wifiPanel.contains(e.target) && !e.target.closest('.wifi-button')) {
+    wifiPanel.style.display = 'none';
+  }
+  
+  if (!volumePanel.contains(e.target) && !e.target.closest('.volume-button')) {
+    volumePanel.style.display = 'none';
+  }
+});
+</script>
+</body></html>
